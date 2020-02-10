@@ -45,4 +45,21 @@ class NegociacaoService {
                  })
          });
     }
+
+    obterNegociacoes() {
+        return new Promise((resolve, reject) => {
+           Promise.all([
+                this.obterNegociacoesDaSemana(),
+                this.obterNegociacoesDaSemanaAnterior(),
+                this.obterNegociacoesDaSemanaRetrasada()
+            ])
+            .then(negociacoes => {
+                resolve(negociacoes
+                    .reduce((arrayAchatado, array) => arrayAchatado.concat(array), []));
+            })
+            .catch(error => {
+                reject(error);
+            });
+        });
+    }
 }

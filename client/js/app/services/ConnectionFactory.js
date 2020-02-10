@@ -1,9 +1,9 @@
 const ConnectionFactory = (function() {
 
     const stores = ['negociacoes'];
-    const version = 5;
+    const version = 8;
     const dbName = "aluraframe";
-    
+
     let connection = null;
     let closeConnection = null;
 
@@ -40,14 +40,12 @@ const ConnectionFactory = (function() {
             });
         }
 
-        static _createStores(conn) {
-            stores.forEach(store => {
-                console.log(store, conn);
-                if (conn.contains(dbName))
-                    conn.deleteObjectStore(dbName);
+        static _createStores(connection) {
 
-                conn.createObjectStore(dbName, {
-                    keyPath: `_${Math.random().toString(36).substr(2, 9)}`,
+            stores.forEach(store => {
+
+                if (connection.objectStoreNames.contains(store)) connection.deleteObjectStore(store);
+                connection.createObjectStore(store, {
                     autoIncrement: true
                 });
             });
