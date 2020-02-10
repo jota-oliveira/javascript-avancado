@@ -2,7 +2,7 @@ class NegociacaoController {
     
     constructor() {
         let $ = document.querySelector.bind(document);
-
+        this._ordemAtual = '';
         this._inputData = $('#data');
         this._inputQuantidade = $('#quantidade');
         this._inputValor = $('#valor');
@@ -10,8 +10,7 @@ class NegociacaoController {
         this._listaNegociacoes = new Bind(
             new ListaNegociacoes(),
             new NegociacoesView($('#negociacoesView')),
-            'adiciona',
-            'esvazia'
+            'adiciona', 'esvazia', 'ordena', 'inverte'
         );
   
         this._mensagem = new Bind(
@@ -66,6 +65,15 @@ class NegociacaoController {
                 });
         })
         .catch(error => { this._mensagem.texto = error; });
+    }
+
+    ordena(coluna) {
+        if (this._ordemAtual === coluna) {
+            this._listaNegociacoes.inverteOrdem();
+        }
+
+        this._listaNegociacoes.ordena((a, b) => a[coluna] - b[coluna]);
+        this._ordemAtual = coluna;
     }
 
     /* Estados de requisição da biblioteca XMLHttpRequest 
