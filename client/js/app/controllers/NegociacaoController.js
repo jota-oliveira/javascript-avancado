@@ -1,113 +1,130 @@
-class NegociacaoController {
-    
-    constructor() {
-        let $ = document.querySelector.bind(document);
-        
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var NegociacaoController = function () {
+    function NegociacaoController() {
+        _classCallCheck(this, NegociacaoController);
+
+        var $ = document.querySelector.bind(document);
+
         this._ordemAtual = '';
         this._inputData = $('#data');
         this._inputQuantidade = $('#quantidade');
         this._inputValor = $('#valor');
-        
-        this._listaNegociacoes = new Bind(
-            new ListaNegociacoes(),
-            new NegociacoesView($('#negociacoesView')),
-            'adiciona', 'esvazia', 'ordena', 'inverte'
-        );
-  
-        this._mensagem = new Bind(
-            new Mensagem(),
-            new MensagemView($('#mensagemView')),
-            'texto',
-        );
+
+        this._listaNegociacoes = new Bind(new ListaNegociacoes(), new NegociacoesView($('#negociacoesView')), 'adiciona', 'esvazia', 'ordena', 'inverte');
+
+        this._mensagem = new Bind(new Mensagem(), new MensagemView($('#mensagemView')), 'texto');
 
         this._service = new NegociacaoService();
 
         this._init();
     }
 
-    _init() {
-        this._service
-            .lista()
-            .then(negociacoes => 
-                negociacoes.forEach(negociacao =>
-                    this._listaNegociacoes.adiciona(negociacao)))
-            .catch(error => this._mensagem.texto = error);
+    _createClass(NegociacaoController, [{
+        key: '_init',
+        value: function _init() {
+            var _this = this;
 
-        setInterval(() => {
-            this.importaNegociacoes();
-        }, 5000);
-    }
+            this._service.lista().then(function (negociacoes) {
+                return negociacoes.forEach(function (negociacao) {
+                    return _this._listaNegociacoes.adiciona(negociacao);
+                });
+            }).catch(function (error) {
+                return _this._mensagem.texto = error;
+            });
 
-    adiciona(event) {
-        event.preventDefault();
+            setInterval(function () {
+                _this.importaNegociacoes();
+            }, 5000);
+        }
+    }, {
+        key: 'adiciona',
+        value: function adiciona(event) {
+            var _this2 = this;
 
-        const negociacao = this._criaNegociacao();
+            event.preventDefault();
 
-        this._service
-            .cadastrar(negociacao)
-            .then((mensagem) => {
-                this._listaNegociacoes.adiciona(negociacao);
-                this._mensagem.texto = mensagem;
-                this._limpaFormulario();
-            })
-            .catch(error => this._mensagem.texto = erro);
-    }
+            var negociacao = this._criaNegociacao();
 
-    _criaNegociacao() {
-        return new Negociacao(
-            DateHelper.textoParaData(this._inputData.value),
-            parseInt(this._inputQuantidade.value),
-            parseFloat(this._inputValor.value)
-        );
-    }
+            this._service.cadastrar(negociacao).then(function (mensagem) {
+                _this2._listaNegociacoes.adiciona(negociacao);
+                _this2._mensagem.texto = mensagem;
+                _this2._limpaFormulario();
+            }).catch(function (error) {
+                return _this2._mensagem.texto = erro;
+            });
+        }
+    }, {
+        key: '_criaNegociacao',
+        value: function _criaNegociacao() {
+            return new Negociacao(DateHelper.textoParaData(this._inputData.value), parseInt(this._inputQuantidade.value), parseFloat(this._inputValor.value));
+        }
+    }, {
+        key: '_limpaFormulario',
+        value: function _limpaFormulario() {
+            this._inputData.value = "";
+            this._inputQuantidade.value = 1;
+            this._inputValor.value = 0.0;
 
-    _limpaFormulario() {
-        this._inputData.value = "";
-        this._inputQuantidade.value = 1;
-        this._inputValor.value = 0.0;
+            this._inputData.focus();
+        }
+    }, {
+        key: 'apaga',
+        value: function apaga() {
+            var _this3 = this;
 
-        this._inputData.focus();
-    }
+            new NegociacaoService().apaga().then(function (mensagem) {
+                _this3._listaNegociacoes.esvazia();
+                _this3._mensagem.texto = mensagem;
+            }).catch = function (error) {
+                return _this3._mensagem.texto = error;
+            };
+        }
+    }, {
+        key: 'importaNegociacoes',
+        value: function importaNegociacoes() {
+            var _this4 = this;
 
-    apaga() {
-        new NegociacaoService()
-            .apaga()
-            .then(mensagem => {
-                this._listaNegociacoes.esvazia();
-                this._mensagem.texto = mensagem;
-            })
-            .catch = error => this._mensagem.texto = error;    
-    }
+            this._service.importa(this._listaNegociacoes.negociacoes).then(function (negociacoes) {
+                return negociacoes.forEach(function (negociacao) {
+                    _this4._service.cadastrar(negociacao).then(function () {
+                        _this4._listaNegociacoes.adiciona(negociacao);
+                        _this4._mensagem.texto = "Negociações do período importadas";
+                    }).catch(function (error) {
+                        return _this4._mensagem.texto = error;
+                    });
+                });
+            }).catch(function (error) {
+                return _this4._mensagem.texto = error;
+            });
+        }
+    }, {
+        key: 'ordena',
+        value: function ordena(coluna) {
+            if (this._ordemAtual === coluna) {
+                this._listaNegociacoes.inverteOrdem();
+            }
 
-    importaNegociacoes() {
-        this._service
-            .importa(this._listaNegociacoes.negociacoes)
-            .then(negociacoes => negociacoes.forEach(negociacao => {
-                this._service
-                    .cadastrar(negociacao)
-                    .then(() => {
-                        this._listaNegociacoes.adiciona(negociacao)
-                        this._mensagem.texto = "Negociações do período importadas"
-                    })
-                    .catch(error => this._mensagem.texto = error);
-            }))
-            .catch(error => this._mensagem.texto = error);
-    }
-
-    ordena(coluna) {
-        if (this._ordemAtual === coluna) {
-            this._listaNegociacoes.inverteOrdem();
+            this._listaNegociacoes.ordena(function (a, b) {
+                return a[coluna] - b[coluna];
+            });
+            this._ordemAtual = coluna;
         }
 
-        this._listaNegociacoes.ordena((a, b) => a[coluna] - b[coluna]);
-        this._ordemAtual = coluna;
-    }
+        /* Estados de requisição da biblioteca XMLHttpRequest 
+            0 - Requisição não iniciada
+            1 - Conexão com o servidor estabelecida
+            2 - Requisição recebida
+            3 - Processando requisição
+            4 - Requisição concluída
+        */
 
-    /* Estados de requisição da biblioteca XMLHttpRequest 
-        0 - Requisição não iniciada
-        1 - Conexão com o servidor estabelecida
-        2 - Requisição recebida
-        3 - Processando requisição
-        4 - Requisição concluída
-    */
-}
+    }]);
+
+    return NegociacaoController;
+}();
+//# sourceMappingURL=NegociacaoController.js.map
